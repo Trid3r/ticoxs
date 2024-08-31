@@ -14,7 +14,8 @@ export default {
         'slide-left': 'slideLeft 0.3s ease-in-out',
         'slide-top': 'slideTop 0.3s ease-in-out',
         'shake-horizontal': 'shakeHorizontal 0.5s ease-in-out',
-        'collapse': 'collapse 0.3s ease-out'
+        'collapse': 'collapse 0.3s ease-out',
+        'typing': 'typing 2s steps(6, end)'
       },
       keyframes: {
         fadeIn: {
@@ -49,6 +50,10 @@ export default {
         collapse: {
           '0%': { height: 'auto', opacity: '1' },
           '100%': { height: '0', opacity: '0' },
+        },
+        typing: {
+          from: { width: '0' },
+          to: { width: '100%' },
         }
       }
     },

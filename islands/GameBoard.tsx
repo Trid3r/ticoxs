@@ -15,10 +15,10 @@ export function GameBoard() {
   const [computerPieces, setComputerPieces] = useState<number[]>([]);
   const [gameOver, setGameOver] = useState(false);
   const [showGameOverModal, setShowGameOverModal] = useState(false);
-  
-  const boardStyle = {
-    transform: gameStarted ? "scale(1.8)" : "scale(1.5)",
-    transition: "transform 0.5s ease-in-out",
+  const [darkMode, setDarkMode] = useState(true);
+
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
   };
 
   useEffect(() => {
@@ -190,24 +190,28 @@ export function GameBoard() {
   };
 
   return (
-    <div class="flex flex-col min-h-screen bg-gray-100 overflow-hidden">
-      <Header gameStarted={gameStarted} />
-      <main class="flex-grow flex items-center justify-center">
+    <div class={`flex flex-col min-h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-black'} transition-colors duration-300`}>
+      <Header gameStarted={gameStarted} darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
+      <main class="flex-grow flex items-center justify-center px-10 py-10">
         <div
-          class="w-96 h-96 grid grid-cols-3 gap-2 bg-white p-4 rounded-lg shadow-lg"
-          style={boardStyle}
+          class={`w-full sm:w-9/12 lg:w-1/3 h-full grid grid-cols-3 gap-2 ${darkMode ? 'bg-gray-800' : 'bg-white'} p-2 sm:p-4 rounded-lg shadow-lg`}
+          style={{
+            transform: gameStarted && "scale(1.2)",
+            transition: "transform 0.5s ease-in-out",
+            aspectRatio: "1 / 1",
+          }}
         >
           {board.map((cell, index) => (
             <button
               key={index}
-              class="w-full h-full bg-gray-200 flex items-center justify-center text-4xl font-bold transition-all duration-300"
+              class={`w-full h-full ${darkMode ? 'bg-gray-700' : 'bg-gray-200'} flex items-center justify-center pt-0 text-6xl lg:text-9xl font-bold transition-all duration-300`}
               onClick={() => handleCellClick(index)}
             >
               {cell && (
                 <span
                   class={`${
                     cell === "X" ? "text-red-500" : "text-blue-500"
-                  } animate-fade-in`}
+                  } animate-fade-in absolute`}
                 >
                   {cell}
                 </span>
@@ -219,10 +223,10 @@ export function GameBoard() {
       <Footer gameStarted={gameStarted} />
       {gameStarted && (
         <>
-          <div class="fixed bottom-0 left-0 right-0 p-4 bg-gray-800 text-white text-center animate-slide-up">
+          <div class="fixed bottom-0 left-0 right-0 p-2 sm:p-4 bg-gray-800 text-white text-center text-sm sm:text-base animate-slide-up">
             {playerTurn ? "Your turn" : "Computer's turn"} - Time left: {timer}s
           </div>
-          <div class="fixed top-0 left-0 right-0 flex justify-between p-4 bg-gray-800 text-white animate-slide-down">
+          <div class="fixed top-0 left-0 right-0 flex justify-between p-2 sm:p-4 bg-gray-800 text-white text-sm sm:text-base animate-slide-down">
             <div>You: {playerLives} ❤️</div>
             <div>Chappie: {computerLives} ❤️</div>
           </div>
