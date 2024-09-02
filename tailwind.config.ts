@@ -10,12 +10,8 @@ export default {
         'fade-in': 'fadeIn 0.3s ease-in-out',
         'slide-up': 'slideUp 0.3s ease-in-out',
         'slide-down': 'slideDown 0.3s ease-in-out',
-        'slide-right': 'slideRight 0.3s ease-in-out',
-        'slide-left': 'slideLeft 0.3s ease-in-out',
-        'slide-top': 'slideTop 0.3s ease-in-out',
-        'shake-horizontal': 'shakeHorizontal 0.5s ease-in-out',
-        'collapse': 'collapse 0.3s ease-out',
-        'typing': 'typing 2s steps(6, end)'
+        shake: 'shake 0.5s ease-in-out',
+        rotation: 'rotation 0.5s ease-in-out',
       },
       keyframes: {
         fadeIn: {
@@ -30,30 +26,18 @@ export default {
           '0%': { transform: 'translateY(-100%)' },
           '100%': { transform: 'translateY(0)' },
         },
-        slideRight: {
-          '0%': { transform: 'translateX(-100%)' },
-          '100%': { transform: 'translateX(0)' },
+        shake: {
+          '10%, 90%': { transform: 'translate3d(-1px, 0, 0)' },
+          '20%, 80%' : { transform: 'translate3d(2px, 0, 0)' },
+          '30%, 50%, 70%': { transform: 'translate3d(-4px, 0, 0)' },
+          '40%, 60%': { transform: 'translate3d(4px, 0, 0)' }
         },
-        slideLeft: {
-          '0%': { transform: 'translateX(100%)' },
-          '100%': { transform: 'translateX(0)' },
-        },
-        slideTop: {
-          '0%': { transform: 'translateY(100%)' },
-          '100%': { transform: 'translateY(0)' },
-        },
-        shakeHorizontal: {
-          '0%, 100%': { transform: 'translateX(0)' },
-          '25%, 75%': { transform: 'translateX(-10px)' },
-          '50%': { transform: 'translateX(10px)' },
-        },
-        collapse: {
-          '0%': { height: 'auto', opacity: '1' },
-          '100%': { height: '0', opacity: '0' },
-        },
-        typing: {
-          from: { width: '0' },
-          to: { width: '100%' },
+        rotation: {
+          '0%': { transform: 'scale(1.2) rotate(0deg)' },
+          '25%': { transform: 'scale(1.2) rotate(5deg)' },
+          '50%': { transform: 'scale(1.2) rotate(0eg)' },
+          '75%': { transform: 'scale(1.2) rotate(-5deg)' },
+          '100%': { transform: 'scale(1.2) rotate(0deg)' }
         }
       }
     },

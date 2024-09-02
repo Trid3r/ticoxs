@@ -1,7 +1,7 @@
 import { useState } from "preact/hooks";
-import { Header } from "../components/Header.tsx";
-import { Footer } from "../components/Footer.tsx";
-import { GameOverModal } from "../components/GameOverModal.tsx";
+import { Header } from "$components/Header.tsx";
+import { Footer } from "$components/Footer.tsx";
+import { GameOverModal } from "$components/GameOverModal.tsx";
 
 export function GameBoard() {
   const [gameStarted, setGameStarted] = useState(false);
@@ -11,19 +11,24 @@ export function GameBoard() {
   const [playerPieces, setPlayerPieces] = useState<number[]>([]);
   const [computerPieces, setComputerPieces] = useState<number[]>([]);
   const [gameOver, setGameOver] = useState(false);
-  const [matchOver, setMatchOver] = useState(false);
   const [showGameOverModal, setShowGameOverModal] = useState(false);
   const [darkMode, setDarkMode] = useState(true);
   const [boardAnimation, setBoardAnimation] = useState("");
+  const [totalPlayerMarks, setTotalPlayerMarks] = useState(0);
+  const [totalMatches, setTotalMatches] = useState(0);
+  const [computerDelay, setComputerDelay] = useState(500);
 
-  const toggleDarkMode = () => {
+   // Toggles dark mode
+   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
   };
 
+  // Checks if the game board is full without any winners (tie)
   const checkTie = (board: (string | null)[]) => {
     return board.every((cell) => cell !== null);
-  };  
+  };
 
+  // Handles a player's move on the game board
   const handleCellClick = (index: number) => {
     if (!gameStarted) {
       setGameStarted(true);
@@ -35,47 +40,100 @@ export function GameBoard() {
     setBoard(newBoard);
     setPlayerTurn(false);
     setPlayerPieces([...playerPieces, index]);
+    setTotalPlayerMarks((prev) => prev + 1);
 
-    // Check for win
     if (checkWin(newBoard, "X")) {
       winTrigger();
-      setMatchOver(false);
       return;
     }
 
-    // Computer's turn immediately after player's move
     setTimeout(() => {
       computerMove(newBoard);
-    }, 500); // Reduced delay for faster gameplay
+    }, computerDelay); 
   };
 
+  // Minimax algorithm to determine the best move for the computer
+  const minimax = (board: (string | null)[], isMaximizing: boolean): number => {
+    const scores: { [key: string]: number } = {
+        'X': -10,
+        'O': 10,
+        'tie': 0
+    };
+
+    const winner = (player: string) => checkWin(board, player);
+    
+    if (winner('O')) return scores['O'];
+    if (winner('X')) return scores['X'];
+    if (checkTie(board)) return scores['tie'];
+
+    const emptyIndices = board.reduce(
+        (acc, cell, idx) => (cell === null ? [...acc, idx] : acc),
+        [] as number[]
+    );
+
+    if (emptyIndices.length === 0) return 0;
+
+    let bestScore = isMaximizing ? -Infinity : Infinity;
+
+    for (const index of emptyIndices) {
+        board[index] = isMaximizing ? 'O' : 'X';
+        const score = minimax(board, !isMaximizing);
+        board[index] = null;
+
+        if (isMaximizing) {
+            bestScore = Math.max(score, bestScore);
+        } else {
+            bestScore = Math.min(score, bestScore);
+        }
+    }
+
+    return bestScore;
+  };
+
+  // Determines the computer's move and updates the board
   const computerMove = (currentBoard: (string | null)[]) => {
     const emptyIndices = currentBoard.reduce(
       (acc, cell, idx) => (cell === null ? [...acc, idx] : acc),
       [] as number[]
     );
-    const randomIndex = emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
+
+    let computerMove = -1;
+    let bestScore = -Infinity;
+
+    for (const index of emptyIndices) {
+        currentBoard[index] = 'O';
+        const score = minimax(currentBoard, false);
+        currentBoard[index] = null;
+
+        if (score > bestScore) {
+            bestScore = score;
+            computerMove = index;
+        }
+    }
   
     const newBoard = [...currentBoard];
-    newBoard[randomIndex] = "O";
+    newBoard[computerMove] = "O";
     setBoard(newBoard);
     setPlayerTurn(true);
-    setComputerPieces([...computerPieces, randomIndex]);
+    setComputerPieces([...computerPieces, computerMove]);
   
     if (checkWin(newBoard, "O")) {
-      setPlayerLives((lives) => lives - 1); // Reduce player lives
+      setPlayerLives((lives) => lives - 1);
       loseTrigger();
   
       if (playerLives - 1 === 0) {
         setGameOver(true);
-        setShowGameOverModal(true); // Show GameOverModal if lives reach 0
+        setShowGameOverModal(true);
+      } else {
+        resetMatch();
       }
     } else if (checkTie(newBoard)) {
-      setMatchOver(true);
-      resetMatch(); // Reiniciar la partida en caso de empate
+      tieTrigger();
+      resetMatch();
     }
   };
 
+  // Checks if a player has won the game
   const checkWin = (board: (string | null)[], player: string) => {
     const winningCombos = [
       [0, 1, 2],
@@ -93,30 +151,46 @@ export function GameBoard() {
     );
   };
 
+  // Triggers an animation for a tie
+  const tieTrigger = () => {
+    setBoardAnimation("rotation-animation"); 
+    setTimeout(() => setBoardAnimation(""), 500);
+  };
+
+  // Triggers an animation for a loss
   const loseTrigger = () => {
-    setBoardAnimation("animate-shake-horizontal"); 
-    setTimeout(() => setBoardAnimation(""), 500); 
-    resetMatch();
+    setBoardAnimation("shake-animation"); 
+    setTimeout(() => setBoardAnimation(""), 500);
   };
 
+  // Triggers an animation for a win
   const winTrigger = () => {
-    setBoardAnimation("animate-bounce"); 
+    setBoardAnimation("animate-fade-in"); 
     setTimeout(() => setBoardAnimation(""), 500); 
     resetMatch();
   };
 
+  // Handles the submission of the game over modal (nickname entry) - Next version: Add request to send that data to endpoint
   const handleGameOverSubmit = (nickname: string) => {
-    console.log(`Winner: ${nickname}`);
+    setGameOver(false);
+    setPlayerLives(3);
+    resetMatch();
+    setShowGameOverModal(false);
   };
 
+  // Resets the game state for a new match
   const resetMatch = () => {
     setBoard(Array(9).fill(null));
-    setPlayerTurn(true);
     setPlayerPieces([]);
     setComputerPieces([]);
-    setMatchOver(false);
+    setTotalMatches((prev) => prev + 1);
+    setPlayerTurn(false);
+    setComputerDelay((prevDelay) => Math.max(prevDelay - 50, 0));
+
+    setTimeout(() => {
+      computerMove(Array(9).fill(null));
+    }, computerDelay);
   };
- 
 
   return (
     <div class={`flex flex-col min-h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-slate-200 text-black'} transition-colors duration-300`}>
@@ -150,7 +224,7 @@ export function GameBoard() {
           ))}
         </div>
       </main>
-      <Footer gameStarted={gameStarted} />
+      <Footer gameStarted={gameStarted} darkMode={darkMode} />
       {gameStarted && (
         <>
           <div class="fixed bottom-0 left-0 right-0 p-2 sm:p-4 bg-gray-800 text-white text-center text-sm sm:text-base animate-slide-up">
@@ -163,7 +237,7 @@ export function GameBoard() {
         </>
       )}
       {showGameOverModal && (
-        <GameOverModal onSubmit={handleGameOverSubmit} />
+        <GameOverModal darkMode={darkMode} totalPlayerMarks={totalPlayerMarks} totalMatches={totalMatches} onSubmit={handleGameOverSubmit} />
       )}
     </div>
   );
